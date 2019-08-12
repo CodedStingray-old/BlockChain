@@ -10,13 +10,13 @@ import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
-import org.spongepowered.api.event.cause.EventContextKeys;
-import org.spongepowered.api.event.cause.entity.spawn.SpawnType;
 import org.spongepowered.api.event.item.inventory.DropItemEvent;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class BlockMineHandler {
@@ -35,20 +35,42 @@ public class BlockMineHandler {
             return;
         }
 
+        //loop through all transactions and edit the ones desired to edit
         for(Transaction<BlockSnapshot> transaction: brokenBlocks) {
             BlockSnapshot originalSnapshot = transaction.getOriginal();
-            BlockType originalType =  originalSnapshot.getState().getType();
+            BlockState originalState = originalSnapshot.getState();
+            BlockType originalType = originalState.getType();
+
+            //edit transaction if desired
             if(originalType.equals(BlockTypes.STONEBRICK) || originalType.equals(BlockTypes.STONE)) {
-                BlockState newState = BlockState.builder().blockType(BlockTypes.COBBLESTONE).build();
-                BlockSnapshot newSnapshot = BlockSnapshot.builder().from(originalSnapshot.getLocation().get()).blockState(newState).build();
-                transaction.setCustom(newSnapshot);
-                logger.info(
-                        "Found block break to edit: " + originalSnapshot.getState() + " -> " + newSnapshot.getState() +
-                                " at " + newSnapshot.getLocation().orElse(null)
-                );
-                modifiedBlocks.add(originalSnapshot);
+                modifyTransaction(transaction, originalSnapshot);
             }
         }
+    }
+
+    private boolean modifyTransaction(Transaction<BlockSnapshot> transaction, BlockSnapshot originalSnapshot) {
+        //get location
+        Location<World> location;
+        Optional<Location<World>> locationOpt = originalSnapshot.getLocation();
+        if(locationOpt.isPresent()) {
+            location = locationOpt.get();
+        } else {
+            logger.warn("Block transaction without location, ignoring this transaction; full BlockSnapshot: " + originalSnapshot);
+            return false;
+        }
+
+        BlockState newState = BlockState.builder().blockType(BlockTypes.COBBLESTONE).build();
+        BlockSnapshot newSnapshot = BlockSnapshot.builder().from(location).blockState(newState).build();
+
+        transaction.setCustom(newSnapshot);
+
+        logger.info(
+                "Found block break to edit: " + originalSnapshot.getState() + " -> " + newSnapshot.getState() +
+                        " at " + newSnapshot.getLocation().orElse(null)
+        );
+        modifiedBlocks.add(originalSnapshot);
+
+        return true;
     }
 
     @Listener
