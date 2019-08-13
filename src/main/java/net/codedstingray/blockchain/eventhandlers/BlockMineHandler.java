@@ -7,6 +7,11 @@ import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.data.Transaction;
+import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.manipulator.immutable.ImmutableWetData;
+import org.spongepowered.api.data.manipulator.immutable.block.ImmutableBrickData;
+import org.spongepowered.api.data.type.BrickType;
+import org.spongepowered.api.data.type.BrickTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
@@ -42,13 +47,35 @@ public class BlockMineHandler {
             BlockType originalType = originalState.getType();
 
             //edit transaction if desired
-            if(originalType.equals(BlockTypes.STONEBRICK) || originalType.equals(BlockTypes.STONE)) {
-                modifyTransaction(transaction, originalSnapshot);
+            BlockState desiredState = null;
+
+            //TODO: replace with table that holds which states should be changed to which states
+            BlockState cobbleStone = BlockState.builder().blockType(BlockTypes.COBBLESTONE).build();
+            BlockState mossyCobbleStone = BlockState.builder().blockType(BlockTypes.MOSSY_COBBLESTONE).build();
+            BlockState crackedStoneBrick = BlockState.builder().blockType(BlockTypes.STONEBRICK).add(Keys.BRICK_TYPE, BrickTypes.CRACKED).build();
+
+            Optional<BrickType> brickTypeOpt = originalState.get(Keys.BRICK_TYPE);
+            if(originalType.equals(BlockTypes.STONEBRICK) && brickTypeOpt.isPresent()) {
+                BrickType brickType = brickTypeOpt.get();
+
+                if(brickType == BrickTypes.DEFAULT || brickType == BrickTypes.CHISELED)
+                    desiredState = crackedStoneBrick;
+                else if(brickType == BrickTypes.CRACKED)
+                    desiredState = cobbleStone;
+                else if(brickType == BrickTypes.MOSSY)
+                    desiredState = mossyCobbleStone;
+
+            } else if(originalType.equals(BlockTypes.STONE)) {
+                desiredState = cobbleStone;
             }
+
+            modifyTransaction(transaction, originalSnapshot, desiredState);
         }
     }
 
-    private boolean modifyTransaction(Transaction<BlockSnapshot> transaction, BlockSnapshot originalSnapshot) {
+    private boolean modifyTransaction(Transaction<BlockSnapshot> transaction, BlockSnapshot originalSnapshot, BlockState desiredState) {
+        if(desiredState == null) return false; //we don't wanna modify this block
+
         //get location
         Location<World> location;
         Optional<Location<World>> locationOpt = originalSnapshot.getLocation();
@@ -59,8 +86,7 @@ public class BlockMineHandler {
             return false;
         }
 
-        BlockState newState = BlockState.builder().blockType(BlockTypes.COBBLESTONE).build();
-        BlockSnapshot newSnapshot = BlockSnapshot.builder().from(location).blockState(newState).build();
+        BlockSnapshot newSnapshot = BlockSnapshot.builder().from(location).blockState(desiredState).build();
 
         transaction.setCustom(newSnapshot);
 
