@@ -8,10 +8,8 @@ import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.data.manipulator.immutable.ImmutableWetData;
-import org.spongepowered.api.data.manipulator.immutable.block.ImmutableBrickData;
-import org.spongepowered.api.data.type.BrickType;
 import org.spongepowered.api.data.type.BrickTypes;
+import org.spongepowered.api.data.type.StoneTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
@@ -19,16 +17,37 @@ import org.spongepowered.api.event.item.inventory.DropItemEvent;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class BlockMineHandler {
 
     private Logger logger = BlockChain.get().getLogger();
 
     private Set<BlockSnapshot> modifiedBlocks = new HashSet<>();
+
+    private Map<BlockState, BlockState> blockStateMap = new HashMap<>();
+
+    public BlockMineHandler() {
+        BlockState stone = BlockState.builder().blockType(BlockTypes.STONE).add(Keys.STONE_TYPE, StoneTypes.STONE).build();
+
+        BlockState cobbleStone = BlockState.builder().blockType(BlockTypes.COBBLESTONE).build();
+        BlockState mossyCobbleStone = BlockState.builder().blockType(BlockTypes.MOSSY_COBBLESTONE).build();
+
+        BlockState stoneBrick = BlockState.builder().blockType(BlockTypes.STONEBRICK).add(Keys.BRICK_TYPE, BrickTypes.DEFAULT).build();
+        BlockState crackedStoneBrick = BlockState.builder().blockType(BlockTypes.STONEBRICK).add(Keys.BRICK_TYPE, BrickTypes.CRACKED).build();
+        BlockState mossyStoneBrick = BlockState.builder().blockType(BlockTypes.STONEBRICK).add(Keys.BRICK_TYPE, BrickTypes.MOSSY).build();
+        BlockState chiseledStoneBrick = BlockState.builder().blockType(BlockTypes.STONEBRICK).add(Keys.BRICK_TYPE, BrickTypes.CHISELED).build();
+
+
+        blockStateMap.put(stoneBrick, crackedStoneBrick);
+        blockStateMap.put(chiseledStoneBrick, crackedStoneBrick);
+
+        blockStateMap.put(mossyStoneBrick, mossyCobbleStone);
+
+        blockStateMap.put(stone, cobbleStone);
+        blockStateMap.put(crackedStoneBrick, cobbleStone);
+        blockStateMap.put(mossyCobbleStone, cobbleStone);
+    }
 
     @Listener
     public void onBlockMined(ChangeBlockEvent.Break event) {
@@ -47,27 +66,7 @@ public class BlockMineHandler {
             BlockType originalType = originalState.getType();
 
             //edit transaction if desired
-            BlockState desiredState = null;
-
-            //TODO: replace with table that holds which states should be changed to which states
-            BlockState cobbleStone = BlockState.builder().blockType(BlockTypes.COBBLESTONE).build();
-            BlockState mossyCobbleStone = BlockState.builder().blockType(BlockTypes.MOSSY_COBBLESTONE).build();
-            BlockState crackedStoneBrick = BlockState.builder().blockType(BlockTypes.STONEBRICK).add(Keys.BRICK_TYPE, BrickTypes.CRACKED).build();
-
-            Optional<BrickType> brickTypeOpt = originalState.get(Keys.BRICK_TYPE);
-            if(originalType.equals(BlockTypes.STONEBRICK) && brickTypeOpt.isPresent()) {
-                BrickType brickType = brickTypeOpt.get();
-
-                if(brickType == BrickTypes.DEFAULT || brickType == BrickTypes.CHISELED)
-                    desiredState = crackedStoneBrick;
-                else if(brickType == BrickTypes.CRACKED)
-                    desiredState = cobbleStone;
-                else if(brickType == BrickTypes.MOSSY)
-                    desiredState = mossyCobbleStone;
-
-            } else if(originalType.equals(BlockTypes.STONE)) {
-                desiredState = cobbleStone;
-            }
+            BlockState desiredState = blockStateMap.get(originalState);
 
             modifyTransaction(transaction, originalSnapshot, desiredState);
         }
