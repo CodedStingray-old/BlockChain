@@ -28,6 +28,10 @@ public class BlockChainManager {
         listenerReferencedChainData.put(listener, data);
     }
 
+    public BlockChainData getChainDataFromListener(Object listener) {
+        return listenerReferencedChainData.get(listener);
+    }
+
     //TODO: move away from modifying transactions
     @Deprecated
     public void modifyTransaction(Transaction<BlockSnapshot> transaction, BlockSnapshot originalSnapshot, BlockState desiredState) {

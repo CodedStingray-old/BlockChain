@@ -19,7 +19,11 @@ public class BlockChainData {
         chainValues.addBlockChainValue(probability, newState);
     }
 
-
+    public BlockState getChainedState(BlockState originalState) {
+        BlockChainValueSet chain = chains.get(originalState);
+        if(chain == null) return null;
+        return chain.getChainedState();
+    }
 
     static class BlockChainValueSet {
         /**
@@ -35,7 +39,7 @@ public class BlockChainData {
             values.add(new BlockChainValue(accumulatedProbability, state));
         }
 
-        BlockState getBockState() {
+        BlockState getChainedState() {
             float random = rng.nextFloat();
 
             for(BlockChainValue value: values) {
