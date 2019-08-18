@@ -10,16 +10,32 @@ import org.spongepowered.api.event.item.inventory.DropItemEvent;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-@Deprecated
-public class ModificationManager {
+/**
+ * Management class that is mainly responsible for managing the chainings of blocks
+ */
+public class BlockChainManager {
 
     private Logger logger = BlockChain.get().getLogger();
 
+    /**
+     * The set of recently modified blocks; This set will be emptied every tick
+     */
     private Set<BlockSnapshot> modifiedBlocks = new HashSet<>();
+
+    private HashMap<Object, BlockChainData> listenerReferencedChainData = new HashMap<>();
+
+    public void register(Object listener) {
+        register(listener, new BlockChainData());
+    }
+
+    public void register(Object listener, BlockChainData data) {
+        listenerReferencedChainData.put(listener, data);
+    }
 
     public boolean modifyTransaction(Transaction<BlockSnapshot> transaction, BlockSnapshot originalSnapshot, BlockState desiredState) {
         if(desiredState == null) return false; //we don't wanna modify this block
@@ -47,21 +63,16 @@ public class ModificationManager {
         return true;
     }
 
+
     @Listener
     public void onItemDropped(DropItemEvent event) {
         event.getCause().first(BlockSnapshot.class).ifPresent(blockSnapshot -> {
             if(modifiedBlocks.contains(blockSnapshot)) {
                 logger.info("Cause of DropItemEvent listed in modified blocks; Removing entry from Set and cancelling event");
-                modifiedBlocks.remove(blockSnapshot);
                 event.setCancelled(true);
             }
         });
     }
 
-    //Singleton
-    private static ModificationManager instance = new ModificationManager();
 
-    public static ModificationManager get() {
-        return instance;
-    }
 }
