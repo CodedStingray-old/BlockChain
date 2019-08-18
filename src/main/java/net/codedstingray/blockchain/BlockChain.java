@@ -1,7 +1,7 @@
 package net.codedstingray.blockchain;
 
 import com.google.inject.Inject;
-import net.codedstingray.blockchain.core.ModificationManager;
+import net.codedstingray.blockchain.core.BlockChainManager;
 import net.codedstingray.blockchain.eventhandlers.BlockMineHandler;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
@@ -23,14 +23,17 @@ public class BlockChain {
     @Inject
     private Logger logger;
 
+    private BlockChainManager blockChainManager;
+
     public BlockChain() {
         instance = this;
     }
 
     @Listener
     public void onInitialization(GameInitializationEvent event) {
+        blockChainManager = new BlockChainManager();
+
         Sponge.getEventManager().registerListeners(this, new BlockMineHandler());
-        Sponge.getEventManager().registerListeners(this, ModificationManager.get());
     }
 
     @Listener
@@ -41,6 +44,10 @@ public class BlockChain {
 
     public Logger getLogger() {
         return logger;
+    }
+
+    public BlockChainManager getBlockChainManager() {
+        return blockChainManager;
     }
 
     //singleton
