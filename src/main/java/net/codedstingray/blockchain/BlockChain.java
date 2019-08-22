@@ -55,18 +55,26 @@ public class BlockChain {
         BlockState mossyStoneBrick = BlockState.builder().blockType(BlockTypes.STONEBRICK).add(Keys.BRICK_TYPE, BrickTypes.MOSSY).build();
         BlockState chiseledStoneBrick = BlockState.builder().blockType(BlockTypes.STONEBRICK).add(Keys.BRICK_TYPE, BrickTypes.CHISELED).build();
 
+        BlockState ironBlock = BlockState.builder().blockType(BlockTypes.IRON_BLOCK).build();
+        BlockState goldBlock = BlockState.builder().blockType(BlockTypes.GOLD_BLOCK).build();
+        BlockState diamondBlock = BlockState.builder().blockType(BlockTypes.DIAMOND_BLOCK).build();
+
 
         BlockChainData blockBreakData = new BlockChainData();
 
-        blockBreakData.addBlockChainValue(stoneBrick, 1, crackedStoneBrick);
-        blockBreakData.addBlockChainValue(chiseledStoneBrick, 1, crackedStoneBrick);
+        blockBreakData.addBlockChainValue(stoneBrick, crackedStoneBrick, 1, false);
+        blockBreakData.addBlockChainValue(chiseledStoneBrick, crackedStoneBrick, 1, false);
 
-        blockBreakData.addBlockChainValue(mossyStoneBrick, 0.5f, mossyCobbleStone);
-        blockBreakData.addBlockChainValue(mossyStoneBrick, 0.5f, crackedStoneBrick);
+        blockBreakData.addBlockChainValue(mossyStoneBrick, mossyCobbleStone, 0.5f, false);
+        blockBreakData.addBlockChainValue(mossyStoneBrick, crackedStoneBrick, 0.5f, false);
 
-        blockBreakData.addBlockChainValue(stone, 1, cobbleStone);
-        blockBreakData.addBlockChainValue(crackedStoneBrick, 1, cobbleStone);
-        blockBreakData.addBlockChainValue(mossyCobbleStone, 1, cobbleStone);
+        blockBreakData.addBlockChainValue(stone, cobbleStone, 1, false);
+        blockBreakData.addBlockChainValue(crackedStoneBrick, cobbleStone, 1, false);
+        blockBreakData.addBlockChainValue(mossyCobbleStone, cobbleStone, 1, false);
+
+        blockBreakData.addBlockChainValue(diamondBlock, goldBlock, 0.2f, true);
+        blockBreakData.addBlockChainValue(diamondBlock, goldBlock, 0.8f, false);
+        blockBreakData.addBlockChainValue(goldBlock, ironBlock, 1, true);
 
         blockChainManager.register(blockMineHandler, blockBreakData);
     }

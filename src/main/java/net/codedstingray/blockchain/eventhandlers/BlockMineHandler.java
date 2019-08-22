@@ -1,6 +1,7 @@
 package net.codedstingray.blockchain.eventhandlers;
 
 import net.codedstingray.blockchain.BlockChain;
+import net.codedstingray.blockchain.core.BlockChainData;
 import org.slf4j.Logger;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
@@ -29,16 +30,19 @@ public class BlockMineHandler {
         List<Transaction<BlockSnapshot>> modifiedTransactions = new LinkedList<>();
 
         for(Transaction<BlockSnapshot> transaction: brokenBlocks) {
+            if(!transaction.isValid()) continue;
+
             BlockSnapshot originalSnapshot = transaction.getOriginal();
             BlockState originalState = originalSnapshot.getState();
 
             //split transactions into those transactions to edit and those to leave as they are
-            BlockState desiredState = BlockChain.get().getBlockChainManager().getChainDataFromListener(this).getChainedState(originalState);
+            BlockChainData.BlockChainValue chainValue = BlockChain.get().getBlockChainManager().getChainDataFromListener(this).getChainedState(originalState);
 
-            if(desiredState != null) {
+            if(chainValue != null) {
+                BlockState desiredState = chainValue.state;
                 BlockSnapshot desiredSnapshot = BlockSnapshot.builder().from(originalSnapshot).blockState(desiredState).build();
                 modifiedTransactions.add(new Transaction<>(originalSnapshot, desiredSnapshot));
-                transaction.setValid(false);
+                transaction.setValid(chainValue.doDrop); //invalidate transaction if we don't wanna drop
             }
         }
 
