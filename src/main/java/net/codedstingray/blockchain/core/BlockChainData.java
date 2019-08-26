@@ -9,23 +9,23 @@ import java.util.Random;
 public class BlockChainData {
     private static Random rng = new Random();
 
-    private HashMap<BlockState, BlockChainValueSet> chains = new HashMap<>();
+    private HashMap<BlockState, BlockChainLink> chains = new HashMap<>();
 
     public void addBlockChainValue(BlockState originalState, BlockState newState, float probability, boolean doDrop) {
-        BlockChainValueSet chainValues = chains.get(originalState);
+        BlockChainLink chainValues = chains.get(originalState);
         if(chainValues == null)
-            chains.put(originalState, (chainValues = new BlockChainValueSet()));
+            chains.put(originalState, (chainValues = new BlockChainLink()));
 
         chainValues.addBlockChainValue(newState, probability, doDrop);
     }
 
     public BlockChainValue getChainedState(BlockState originalState) {
-        BlockChainValueSet chain = chains.get(originalState);
+        BlockChainLink chain = chains.get(originalState);
         if(chain == null) return null;
         return chain.getChainValue();
     }
 
-    static class BlockChainValueSet {
+    static class BlockChainLink {
         /**
          * List of Blockstates and their <b>accumulated</b> probabilities
          */
