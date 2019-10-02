@@ -62,8 +62,9 @@ public class ConfigManager {
         }
 
 
-        ConfigurationNode listeners = configRootNode.getNode("listeners");
+        ConfigData.regenerateFaultyChainConfigs = configRootNode.getNode("regenerate-faulty-chain-configs").getBoolean(false);
 
+        ConfigurationNode listeners = configRootNode.getNode("listeners");
         ConfigData.enableBlockBreakListener = listeners.getNode("enable-block-break-listener").getBoolean(false);
         ConfigData.enableRandomTickListener = listeners.getNode("enable-random-tick-listener").getBoolean(false);
     }

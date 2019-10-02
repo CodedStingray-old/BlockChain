@@ -2,7 +2,6 @@ package net.codedstingray.blockchain.eventhandlers;
 
 import net.codedstingray.blockchain.BlockChain;
 import net.codedstingray.blockchain.core.BlockChainData;
-import org.slf4j.Logger;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.data.Transaction;
@@ -13,9 +12,11 @@ import org.spongepowered.api.scheduler.Task;
 
 import java.util.*;
 
-public class BlockMineHandler {
+public class BlockMineHandler extends BlockChainEventListener {
 
-    private Logger logger = BlockChain.get().getLogger();
+    public BlockMineHandler() {
+        super("blockbreak");
+    }
 
     @Listener
     public void onBlockMined(ChangeBlockEvent.Break event) {
