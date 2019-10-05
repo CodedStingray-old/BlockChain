@@ -37,7 +37,7 @@ public class BlockMineHandler extends BlockChainEventListener {
             BlockState originalState = originalSnapshot.getState();
 
             //split transactions into those transactions to edit and those to leave as they are
-            BlockChainData.BlockChainValue chainValue = BlockChain.get().getBlockChainManager().getChainDataFromListener(this).getChainedState(originalState);
+            BlockChainData.ChainLinkTarget chainValue = BlockChain.get().getBlockChainManager().getChainDataFromListener(this).getChainLinkTarget(originalState);
 
             if(chainValue != null) {
                 BlockState desiredState = chainValue.state;

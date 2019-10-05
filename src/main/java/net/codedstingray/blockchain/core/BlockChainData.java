@@ -16,45 +16,33 @@ public class BlockChainData {
         if(chainValues == null)
             chains.put(originalState, (chainValues = new BlockChainLink()));
 
-        chainValues.addBlockChainValue(newState, probability, doDrop);
+        chainValues.addChainLinkTarget(newState, probability, doDrop);
     }
 
-    public BlockChainValue getChainedState(BlockState originalState) {
+    public ChainLinkTarget getChainLinkTarget(BlockState originalState) {
         BlockChainLink chain = chains.get(originalState);
         if(chain == null) return null;
-        return chain.getChainValue();
+        return chain.getChainLinkTarget();
     }
 
     static class BlockChainLink {
         /**
          * List of Blockstates and their <b>accumulated</b> probabilities
          */
-        LinkedList<BlockChainValue> values = new LinkedList<>();
+        LinkedList<ChainLinkTarget> values = new LinkedList<>();
 
-        void addBlockChainValue(BlockState state, float probability, boolean doDrop) {
+        void addChainLinkTarget(BlockState state, float probability, boolean doDrop) {
             float accumulatedProbability = values.isEmpty()
                     ? probability
                     : values.getLast().accumulatedProbability + probability;
 
-            values.add(new BlockChainValue(state, accumulatedProbability, doDrop));
+            values.add(new ChainLinkTarget(state, accumulatedProbability, doDrop));
         }
 
-        @Deprecated
-        BlockState getChainedState() {
+        ChainLinkTarget getChainLinkTarget() {
             float random = rng.nextFloat();
 
-            for(BlockChainValue value: values) {
-                if(random < value.accumulatedProbability)
-                    return value.state;
-            }
-
-            return null;
-        }
-
-        BlockChainValue getChainValue() {
-            float random = rng.nextFloat();
-
-            for(BlockChainValue value: values) {
+            for(ChainLinkTarget value: values) {
                 if(random < value.accumulatedProbability)
                     return value;
             }
@@ -63,12 +51,12 @@ public class BlockChainData {
         }
     }
 
-    public static class BlockChainValue {
+    public static class ChainLinkTarget {
         public final float accumulatedProbability;
         public final BlockState state;
         public final boolean doDrop;
 
-        BlockChainValue(BlockState state, float accumulatedProbability, boolean doDrop) {
+        ChainLinkTarget(BlockState state, float accumulatedProbability, boolean doDrop) {
             this.accumulatedProbability = accumulatedProbability;
             this.state = state;
             this.doDrop = doDrop;
